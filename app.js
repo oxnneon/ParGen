@@ -10,7 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const conditionPopup = document.getElementById('condition-popup');
     const confirmConditionBtn = document.getElementById('confirm-condition');
     const cancelConditionBtn = document.getElementById('cancel-condition');
-    let currentStructure = null; // Track the current structure being edited
+    const counterBtn = document.getElementById('counter-condition');
+    const counterInput = document.getElementById('counter-input');
+    const roundsInput = document.getElementById('rounds');
+    const fullscreenOverlay = document.getElementById('fullscreen-overlay'); // Added overlay
+    const emptyPopup = document.getElementById('empty-popup');
+    const closeEmptyPopupBtn = document.getElementById('close-popup');
+    let currentStructure = null;
+
+    setupEmptyPath();
 
     /*
         Listeners
@@ -51,38 +59,65 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmConditionBtn.addEventListener('click', () => {
         const selectedCondition = document.querySelector('.condition-buttons button.selected');
         if (selectedCondition) {
-            const conditionText = selectedCondition.id === 'no-noise' ? 'Pas de bruit' : 'Pas d\'obstacle';
-            currentStructure.querySelector('span').textContent = `${currentStructure.classList.contains('if') ? 'If' : 'While'} (${conditionText})`;
-            currentStructure.classList.remove('temp-structure'); // Finalize structure
+            let conditionText = '';
+            if (selectedCondition.id === 'counter-condition') {
+                const rounds = roundsInput.value || 2;
+                conditionText = `${rounds} tours`;
+            } else {
+                conditionText = selectedCondition.id === 'no-noise' ? 'Pas de bruit' : 'Pas d\'obstacle';
+            }
+            currentStructure.querySelector('span').textContent = `${currentStructure.classList.contains('while') ? 'While' : 'If'} (${conditionText})`;
+            currentStructure.classList.remove('temp-structure');
             closeConditionPopup();
         }
     });
 
-    cancelConditionBtn.addEventListener('click', closeConditionPopup);
+    cancelConditionBtn.addEventListener('click', () => {
+        if (currentStructure && currentStructure.classList.contains('temp-structure')) {
+            currentStructure.remove(); // Remove the structure from the path
+        }
+        closeConditionPopup();
+    });
 
     clearSchemaBtn.addEventListener('click', () => {
-        schemaPath.innerHTML = '';
+        schemaPath.textContent = '';
+        const startPoint = document.createElement('div');
+        startPoint.classList.add('start');
+        schemaPath.appendChild(startPoint);
+        updateEndFlag();
     });
 
     generateCodeBtn.addEventListener('click', () => {
-        loaderContainer.classList.remove('hidden');
-        setTimeout(() => {
-            loaderContainer.classList.add('hidden');
-            const swoosh = document.getElementById('swoosh');
-            swoosh.classList.remove('hidden');
-            swoosh.classList.add('animate');
+        if (schemaPath.children.length > 2) {
+            loaderContainer.classList.remove('hidden');
             setTimeout(() => {
-                swoosh.classList.remove('animate');
-                swoosh.classList.add('hidden');
-            }, 1000);
-        }, 3000);
+                loaderContainer.classList.add('hidden');
+                const swoosh = document.getElementById('swoosh');
+                swoosh.classList.remove('hidden');
+                swoosh.classList.add('animate');
+                setTimeout(() => {
+                    swoosh.classList.remove('animate');
+                    swoosh.classList.add('hidden');
+                }, 1000);
+            }, 3000);
+        } else {
+            openEmptyPopup();
+        }
     });
+
+    closeEmptyPopupBtn.addEventListener('click', closeEmptyPopup);
 
     document.querySelectorAll('.condition-buttons button').forEach((btn) => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.condition-buttons button').forEach((b) => b.classList.remove('selected'));
             btn.classList.add('selected');
             confirmConditionBtn.disabled = false;
+
+            if (btn.id === 'counter-condition' && currentStructure && currentStructure.classList.contains('while')) {
+                counterInput.classList.remove('hidden');
+            } else {
+                counterInput.classList.add('hidden');
+            }
         });
     });
 
@@ -90,26 +125,9 @@ document.addEventListener('DOMContentLoaded', () => {
     Functions
     */
     function addActionToSchema(action, container) {
-        if (container === schemaPath && schemaPath.children.length === 0) {
-            const startPoint = document.createElement('div');
-            startPoint.classList.add('start');
-            schemaPath.appendChild(startPoint);
-        }
-
         let structure;
 
         switch (action) {
-            case 'avancer':
-            case 'reculer':
-            case 'tourner-gauche':
-            case 'tourner-droite':
-            case 'lumiere':
-            case 'bruit':
-                const icon = document.createElement('i');
-                icon.classList.add('fas', getIconClass(action));
-                container.appendChild(icon);
-                break;
-
             case 'if':
             case 'while':
                 structure = document.createElement('div');
@@ -124,36 +142,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.stopPropagation();
                     e.preventDefault();
                     const innerAction = e.dataTransfer.getData('action');
-                    if (innerAction) {
-                        addActionToSchema(innerAction, body);
-                    }
+                    if (innerAction) addActionToSchema(innerAction, body);
                 });
 
                 container.appendChild(structure);
                 currentStructure = structure;
-
-                // Mark structure as temporary
                 structure.classList.add('temp-structure');
-
-                // Clear previously selected conditions
+                toggleCompteurOption(action === 'while');
                 clearConditionSelection();
-
-                conditionPopup.classList.remove('hidden');
+                openConditionPopup();
                 break;
         }
 
         updateEndFlag();
-    }
-
-    function getIconClass(action) {
-        switch (action) {
-            case 'avancer': return 'fa-arrow-up';
-            case 'reculer': return 'fa-arrow-down';
-            case 'tourner-gauche': return 'fa-arrow-left';
-            case 'tourner-droite': return 'fa-arrow-right';
-            case 'lumiere': return 'fa-lightbulb';
-            case 'bruit': return 'fa-volume-up';
-        }
     }
 
     function updateEndFlag() {
@@ -167,17 +168,58 @@ document.addEventListener('DOMContentLoaded', () => {
         schemaPath.appendChild(endFlag);
     }
 
+    function openConditionPopup() {
+        conditionPopup.classList.remove('hidden');
+        fullscreenOverlay.classList.remove('hidden');
+        disableBackgroundInteraction();
+    }
+
     function closeConditionPopup() {
         conditionPopup.classList.add('hidden');
-        if (currentStructure && currentStructure.classList.contains('temp-structure')) {
-            // Remove temporary structure
-            currentStructure.remove();
-        }
-        currentStructure = null;
+        fullscreenOverlay.classList.add('hidden');
+        enableBackgroundInteraction();
+    }
+
+    function openEmptyPopup() {
+        emptyPopup.classList.remove('hidden');
+        fullscreenOverlay.classList.remove('hidden');
+        disableBackgroundInteraction();
+    }
+
+    function closeEmptyPopup() {
+        emptyPopup.classList.add('hidden');
+        fullscreenOverlay.classList.add('hidden');
+        enableBackgroundInteraction();
     }
 
     function clearConditionSelection() {
         document.querySelectorAll('.condition-buttons button').forEach((btn) => btn.classList.remove('selected'));
-        confirmConditionBtn.disabled = true; 
+        confirmConditionBtn.disabled = true;
+    }
+
+    function toggleCompteurOption(show) {
+        if (show) {
+            counterBtn.style.display = 'inline-block'; // Show for "While"
+        } else {
+            counterBtn.style.display = 'none'; // Hide for "If"
+            counterInput.classList.add('hidden');
+        }
+    }
+
+    function setupEmptyPath() {
+        const startPoint = document.createElement('div');
+        startPoint.classList.add('start');
+        schemaPath.appendChild(startPoint);
+        updateEndFlag();
+    }
+
+    function disableBackgroundInteraction() {
+        document.body.style.pointerEvents = 'none';
+        conditionPopup.style.pointerEvents = 'auto';
+        emptyPopup.style.pointerEvents = 'auto';
+    }
+
+    function enableBackgroundInteraction() {
+        document.body.style.pointerEvents = '';
     }
 });
