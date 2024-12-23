@@ -128,6 +128,16 @@ document.addEventListener('DOMContentLoaded', () => {
         let structure;
 
         switch (action) {
+            case 'avancer':
+            case 'reculer':
+            case 'tourner-gauche':
+            case 'tourner-droite':
+            case 'lumiere':
+            case 'bruit':
+                const icon = document.createElement('i');
+                icon.classList.add('fas', getIconClass(action));
+                container.appendChild(icon);
+                break;
             case 'if':
             case 'while':
                 structure = document.createElement('div');
@@ -155,6 +165,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         updateEndFlag();
+    }
+
+    function getIconClass(action) {
+        switch (action) {
+            case 'avancer': return 'fa-arrow-up';
+            case 'reculer': return 'fa-arrow-down';
+            case 'tourner-gauche': return 'fa-arrow-left';
+            case 'tourner-droite': return 'fa-arrow-right';
+            case 'lumiere': return 'fa-lightbulb';
+            case 'bruit': return 'fa-volume-up';
+        }
     }
 
     function updateEndFlag() {
