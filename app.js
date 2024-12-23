@@ -197,6 +197,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function closeConditionPopup() {
         conditionPopup.classList.add('hidden');
+        roundsInput.classList.add('hidden');
+        counterInput.classList.add('hidden');
         fullscreenOverlay.classList.add('hidden');
         enableBackgroundInteraction();
     }
