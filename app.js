@@ -85,99 +85,99 @@ document.addEventListener('DOMContentLoaded', () => {
             confirmConditionBtn.disabled = false;
         });
     });
-});
 
-/*
+    /*
     Functions
-*/
-function addActionToSchema(action, container) {
-    if (container === schemaPath && schemaPath.children.length === 0) {
-        const startPoint = document.createElement('div');
-        startPoint.classList.add('start');
-        schemaPath.appendChild(startPoint);
+    */
+    function addActionToSchema(action, container) {
+        if (container === schemaPath && schemaPath.children.length === 0) {
+            const startPoint = document.createElement('div');
+            startPoint.classList.add('start');
+            schemaPath.appendChild(startPoint);
+        }
+
+        let structure;
+
+        switch (action) {
+            case 'avancer':
+            case 'reculer':
+            case 'tourner-gauche':
+            case 'tourner-droite':
+            case 'lumiere':
+            case 'bruit':
+                const icon = document.createElement('i');
+                icon.classList.add('fas', getIconClass(action));
+                container.appendChild(icon);
+                break;
+
+            case 'if':
+            case 'while':
+                structure = document.createElement('div');
+                structure.classList.add('structure', action);
+                structure.innerHTML = `<span>${action === 'if' ? 'If (condition)' : 'While (condition)'}</span>`;
+                const body = document.createElement('div');
+                body.classList.add('structure-body');
+                structure.appendChild(body);
+
+                body.addEventListener('dragover', (e) => e.preventDefault());
+                body.addEventListener('drop', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    const innerAction = e.dataTransfer.getData('action');
+                    if (innerAction) {
+                        addActionToSchema(innerAction, body);
+                    }
+                });
+
+                container.appendChild(structure);
+                currentStructure = structure;
+
+                // Mark structure as temporary
+                structure.classList.add('temp-structure');
+
+                // Clear previously selected conditions
+                clearConditionSelection();
+
+                conditionPopup.classList.remove('hidden');
+                break;
+        }
+
+        updateEndFlag();
     }
 
-    let structure;
-
-    switch (action) {
-        case 'avancer':
-        case 'reculer':
-        case 'tourner-gauche':
-        case 'tourner-droite':
-        case 'lumiere':
-        case 'bruit':
-            const icon = document.createElement('i');
-            icon.classList.add('fas', getIconClass(action));
-            container.appendChild(icon);
-            break;
-
-        case 'if':
-        case 'while':
-            structure = document.createElement('div');
-            structure.classList.add('structure', action);
-            structure.innerHTML = `<span>${action === 'if' ? 'If (condition)' : 'While (condition)'}</span>`;
-            const body = document.createElement('div');
-            body.classList.add('structure-body');
-            structure.appendChild(body);
-
-            body.addEventListener('dragover', (e) => e.preventDefault());
-            body.addEventListener('drop', (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                const innerAction = e.dataTransfer.getData('action');
-                if (innerAction) {
-                    addActionToSchema(innerAction, body);
-                }
-            });
-
-            container.appendChild(structure);
-            currentStructure = structure;
-
-            // Mark structure as temporary
-            structure.classList.add('temp-structure');
-
-            // Clear previously selected conditions
-            clearConditionSelection();
-
-            conditionPopup.classList.remove('hidden');
-            break;
+    function getIconClass(action) {
+        switch (action) {
+            case 'avancer': return 'fa-arrow-up';
+            case 'reculer': return 'fa-arrow-down';
+            case 'tourner-gauche': return 'fa-arrow-left';
+            case 'tourner-droite': return 'fa-arrow-right';
+            case 'lumiere': return 'fa-lightbulb';
+            case 'bruit': return 'fa-volume-up';
+        }
     }
 
-    updateEndFlag();
-}
+    function updateEndFlag() {
+        const existingEnd = schemaPath.querySelector('.end');
+        if (existingEnd) {
+            existingEnd.remove();
+        }
 
-function getIconClass(action) {
-    switch (action) {
-        case 'avancer': return 'fa-arrow-up';
-        case 'reculer': return 'fa-arrow-down';
-        case 'tourner-gauche': return 'fa-arrow-left';
-        case 'tourner-droite': return 'fa-arrow-right';
-        case 'lumiere': return 'fa-lightbulb';
-        case 'bruit': return 'fa-volume-up';
-    }
-}
-
-function updateEndFlag() {
-    const existingEnd = schemaPath.querySelector('.end');
-    if (existingEnd) {
-        existingEnd.remove();
+        const endFlag = document.createElement('i');
+        endFlag.classList.add('fas', 'fa-flag', 'end');
+        schemaPath.appendChild(endFlag);
     }
 
-    const endFlag = document.createElement('i');
-    endFlag.classList.add('fas', 'fa-flag', 'end');
-    schemaPath.appendChild(endFlag);
-}
-
-function closeConditionPopup() {
-    conditionPopup.classList.add('hidden');
-    if (currentStructure && currentStructure.classList.contains('temp-structure')) {
-        // Remove temporary structure
-        currentStructure.remove();
+    function closeConditionPopup() {
+        conditionPopup.classList.add('hidden');
+        if (currentStructure && currentStructure.classList.contains('temp-structure')) {
+            // Remove temporary structure
+            currentStructure.remove();
+        }
+        currentStructure = null;
     }
-    currentStructure = null;
-}
 
-function clearConditionSelection() {
-    document.querySelectorAll('.condition-buttons button').forEach((btn) => btn.classList.remove('selected'));
-    confirmConditionBtn.disabled = true; // Disable the confirm button until a condition is selected
-}
+    function clearConditionSelection() {
+        document.querySelectorAll('.condition-buttons button').forEach((btn) => btn.classList.remove('selected'));
+        confirmConditionBtn.disabled = true; 
+    }
+});
