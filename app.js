@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const counterBtn = document.getElementById('counter-condition');
     const counterInput = document.getElementById('counter-input');
     const roundsInput = document.getElementById('rounds');
-    const fullscreenOverlay = document.getElementById('fullscreen-overlay'); // Added overlay
+    const fullscreenOverlay = document.getElementById('fullscreen-overlay');
     const emptyPopup = document.getElementById('empty-popup');
     const closeEmptyPopupBtn = document.getElementById('close-popup');
     let currentStructure = null;
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-
+    
     /*
     Functions
     */
@@ -208,9 +208,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function closeEmptyPopup() {
+        console.log("1");
         emptyPopup.classList.add('hidden');
+        console.log("2");
         fullscreenOverlay.classList.add('hidden');
+        console.log("3");
         enableBackgroundInteraction();
+        console.log("4");
     }
 
     function clearConditionSelection() {
@@ -236,11 +240,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function disableBackgroundInteraction() {
         document.body.style.pointerEvents = 'none';
-        conditionPopup.style.pointerEvents = 'auto';
-        emptyPopup.style.pointerEvents = 'auto';
+        conditionPopup.style.pointerEvents = 'auto'; // Allow popup interaction
+        emptyPopup.style.pointerEvents = 'auto'; // Allow empty popup interaction
     }
-
+    
     function enableBackgroundInteraction() {
-        document.body.style.pointerEvents = '';
+        document.body.style.pointerEvents = ''; // Re-enable background
     }
 });

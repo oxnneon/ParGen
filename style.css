@@ -336,7 +336,7 @@ button#generateCode:active {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     text-align: center;
-    z-index: 100;
+    z-index: 1000;
 }
 
 #condition-popup.hidden {
@@ -435,11 +435,12 @@ button#generateCode:active {
     left: 0;
     width: 100%;
     height: 100%;
-    display: flex;
     justify-content: center;
     align-items: center;
+    border-radius: 8px;
     z-index: 1000;
-    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    background: transparent;
 }
 
 #empty-popup.hidden {
@@ -479,13 +480,4 @@ button#generateCode:active {
 
 .popup-content button:hover {
     background: #0056b3;
-}
-
-.popup-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: transparent;
 }
