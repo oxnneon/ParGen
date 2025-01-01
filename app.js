@@ -210,13 +210,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function closeEmptyPopup() {
-        console.log("1");
         emptyPopup.classList.add('hidden');
-        console.log("2");
         fullscreenOverlay.classList.add('hidden');
-        console.log("3");
         enableBackgroundInteraction();
-        console.log("4");
     }
 
     function clearConditionSelection() {
