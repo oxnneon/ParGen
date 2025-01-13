@@ -1,0 +1,7 @@
+parcours myParcours {
+    avancer 5;
+    tourner gauche;
+    while (noNoise) {
+        reculer 3;
+    }
+}
