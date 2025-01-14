@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    const sampleFilePath = 'sample.pargendsl'; // Path to the sample file
+    const sampleFilePath = 'mypath.pargendsl'; // Path to the sample file
 
-    fetch('sample.pargendsl')
+    fetch(sampleFilePath)
     .then(response => response.text())
     .then(dslText => {
         const parsedDSL = parseDSL(dslText);
@@ -158,45 +158,62 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
     
         case 'if':
-            case 'while':
-                structure = document.createElement('div');
-                structure.classList.add('structure', action);
-                structure.innerHTML = `<span>${action === 'if' ? 'If' : 'While'} (${condition || 'condition'})</span>`;
-                const body = document.createElement('div');
-                body.classList.add('structure-body');
-                structure.appendChild(body);
-    
-                // Allow nested actions
-                body.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                });
-    
-                body.addEventListener('drop', (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    const innerAction = e.dataTransfer.getData('action');
-                    if (innerAction) addActionToSchema(innerAction, body);
-                });
-    
-                // Add nested actions if provided
-                if (nestedActions) {
-                    nestedActions.forEach(nestedAction => 
-                        addActionToSchema(nestedAction.action, body, nestedAction.nestedActions || null)
-                    );
+        case 'while':
+            structure = document.createElement('div');
+            structure.classList.add('structure', action);
+            // Map conditions 
+            let conditionText = '';
+            if (condition) {
+                if (condition === 'noNoise') {
+                    conditionText = 'Pas de bruit';
+                } else if (condition === 'noObstacle') {
+                    conditionText = 'Pas d\'obstacle';
+                } else if (condition.startsWith('counter')) {
+                    const rounds = condition.match(/\d+/)[0]; // Extract numeric value
+                    conditionText = `${rounds} tours`;
+                } else {
+                    conditionText = condition; // Default fallback
                 }
-    
-                container.appendChild(structure);
-    
-                // Skip popup if condition is provided
-                if (!condition) {
-                    currentStructure = structure;
-                    structure.classList.add('temp-structure');
-                    toggleCompteurOption(action === 'while');
-                    clearConditionSelection();
-                    openConditionPopup();
-                }
-                break;
+            } else {
+                conditionText = 'condition'; // Default placeholder
+            }
+
+            structure.innerHTML = `<span>${action === 'if' ? 'If' : 'While'} (${conditionText || 'condition'})</span>`;
+            const body = document.createElement('div');
+            body.classList.add('structure-body');
+            structure.appendChild(body);
+
+            // Allow nested actions
+            body.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+
+            body.addEventListener('drop', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const innerAction = e.dataTransfer.getData('action');
+                if (innerAction) addActionToSchema(innerAction, body);
+            });
+
+            // Add nested actions if provided
+            if (nestedActions) {
+                nestedActions.forEach(nestedAction => 
+                    addActionToSchema(nestedAction.action, body, nestedAction.nestedActions || null)
+                );
+            }
+
+            container.appendChild(structure);
+
+            // Skip popup if condition is provided
+            if (!condition) {
+                currentStructure = structure;
+                structure.classList.add('temp-structure');
+                toggleCompteurOption(action === 'while');
+                clearConditionSelection();
+                openConditionPopup();
+            }
+            break;
         }
     
         updateEndFlag();
@@ -310,13 +327,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (line.startsWith('bruit')) {
                     actions.push({ action: 'bruit' });
                 } else if (line.startsWith('while')) {
-                    const condition = line.match(/while \((.+)\) {/)[1];
-                    const nestedActions = parseBlock(); // Recursively parse nested block
-                    actions.push({ action: 'while', condition, nestedActions });
+                    const condition = line.match(/\((.*?)\)/)[1];
+                    actions.push({ action: 'while', nestedActions: parseBlock(), condition });
                 } else if (line.startsWith('if')) {
-                    const condition = line.match(/if \((.+)\) {/)[1];
-                    const nestedActions = parseBlock(); // Recursively parse nested block
-                    actions.push({ action: 'if', condition, nestedActions });
+                    const condition = line.match(/\((.*?)\)/)[1];
+                    actions.push({ action: 'if', nestedActions: parseBlock(), condition });
                 }
             }
             return actions;

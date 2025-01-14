@@ -282,6 +282,18 @@ button#generateCode:active {
     display: flex;
 }
 
+#loader-container .car-wrapper {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white; /* White background circle */
+    border-radius: 50%; /* Make it circular */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Optional: Add a subtle shadow */
+}
+
 .car__body {
     animation: car-shake 0.5s ease-in-out infinite alternate;
 }
