@@ -289,9 +289,9 @@ button#generateCode:active {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: white; /* White background circle */
-    border-radius: 50%; /* Make it circular */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Optional: Add a subtle shadow */
+    background: white; 
+    border-radius: 50%; 
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); 
 }
 
 .car__body {
@@ -509,4 +509,87 @@ button#generateCode:active {
 
 .popup-content button:hover {
     background: #0056b3;
+}
+
+#time-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 350px;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    text-align: center;
+    z-index: 1001; 
+    box-sizing: border-box;
+}
+
+#time-popup.hidden {
+    display: none;
+}
+
+#time-popup h3 {
+    margin-bottom: 15px;
+    font-size: 1.5em;
+    color: #333;
+    text-align: center;
+}
+
+#time-popup label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 1em;
+    color: #333;
+}
+
+#time-popup input {
+    width: calc(100% - 20px); 
+    padding: 8px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+#time-popup .action-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+#time-popup .action-buttons button {
+    flex: 1;
+    padding: 10px;
+    font-size: 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    border: none;
+    color: #fff;
+}
+
+#time-popup .action-buttons #cancel-time {
+    background-color: #f44336;
+}
+
+#time-popup .action-buttons #confirm-time {
+    background-color: #4caf50;
+}
+
+#time-popup .action-buttons button:hover {
+    opacity: 0.9;
+}
+
+.action-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px; /* Space between the icon and time text */
+}
+
+.time-text {
+    font-size: 0.8em;
+    color: #1e88e5;
+    margin-top: -5px; /* Adjust the vertical spacing */
 }

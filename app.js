@@ -28,6 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const emptyPopup = document.getElementById('empty-popup');
     const closeEmptyPopupBtn = document.getElementById('close-popup');
     let currentStructure = null;
+    const timePopup = document.getElementById('time-popup');
+    const timeInput = document.getElementById('time-input');
+    const cancelTimeBtn = document.getElementById('cancel-time');
+    const confirmTimeBtn = document.getElementById('confirm-time');
+    let pendingAction = null;
 
     setupEmptyPath();
 
@@ -54,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const action = e.dataTransfer.getData('action');
         if (action) {
-            addActionToSchema(action, schemaPath);
+            handleAction(action, schemaPath);
         }
     });
 
@@ -62,10 +67,47 @@ document.addEventListener('DOMContentLoaded', () => {
         actionItem.addEventListener('click', () => {
             const action = actionItem.dataset.action;
             if (action) {
-                addActionToSchema(action, schemaPath);
+                handleAction(action, schemaPath);
             }
         });
     });
+
+    // Handle time popup
+    function handleAction(action, container) {
+        if (action === 'avancer' || action === 'reculer') {
+            pendingAction = { action, container };
+            openTimePopup();
+        } else {
+            addActionToSchema(action, container);
+        }
+    }
+
+    function openTimePopup(actionElement) {
+        currentActionElement = actionElement;
+        timePopup.classList.remove('hidden');
+        document.body.style.pointerEvents = 'none'; // Disable background interaction
+        timePopup.style.pointerEvents = 'auto';
+    }
+
+    // Close the time popup
+    function closeTimePopup() {
+        timePopup.classList.add('hidden');
+        currentActionElement = null;
+        document.body.style.pointerEvents = ''; // Re-enable background interaction
+    }
+
+    confirmTimeBtn.addEventListener('click', () => {
+        const duration = parseInt(timeInput.value, 10); 
+        if (pendingAction && !isNaN(duration)) {
+            addActionToSchema(pendingAction.action, pendingAction.container, null, null, duration);
+        }
+        pendingAction = null; 
+        closeTimePopup(); 
+    });
+    
+
+     // Cancel the popup
+     cancelTimeBtn.addEventListener('click', closeTimePopup);
 
     confirmConditionBtn.addEventListener('click', () => {
         const selectedCondition = document.querySelector('.condition-buttons button.selected');
@@ -142,17 +184,27 @@ document.addEventListener('DOMContentLoaded', () => {
     /*
     Functions
     */
-    function addActionToSchema(action, container, nestedActions = null, condition = null) {
+    function addActionToSchema(action, container, nestedActions = null, condition = null, duration = null) {
         let structure;
-    
+        const icon = document.createElement('i');
+
         switch (action) {
             case 'avancer':
             case 'reculer':
+                const actionWrapper = document.createElement('div');
+                actionWrapper.classList.add('action-wrapper');
+                icon.classList.add('fas', getIconClass(action));
+                const timeText = document.createElement('div');
+                timeText.classList.add('time-text');
+                timeText.textContent = `(${duration}s)`;
+                actionWrapper.appendChild(icon);
+                actionWrapper.appendChild(timeText);
+                container.appendChild(actionWrapper);
+                break;
             case 'tourner-gauche':
             case 'tourner-droite':
             case 'lumiere':
             case 'bruit':
-                const icon = document.createElement('i');
                 icon.classList.add('fas', getIconClass(action));
                 container.appendChild(icon);
                 break;
