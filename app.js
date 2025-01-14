@@ -1,12 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
-
     const sampleFilePath = 'mypath.pargendsl'; // Path to the sample file
 
     fetch(sampleFilePath)
     .then(response => response.text())
     .then(dslText => {
         const parsedDSL = parseDSL(dslText);
-        parsedDSL.forEach(action => addActionToSchema(action.action, schemaPath, action.nestedActions, action.condition));
+        parsedDSL.forEach(action => addActionToSchema(action.action, schemaPath, action.nestedActions, action.condition, action.duration));
     })
     .catch(err => console.error('Error loading DSL file:', err));
 
@@ -245,13 +244,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.stopPropagation();
                 e.preventDefault();
                 const innerAction = e.dataTransfer.getData('action');
-                if (innerAction) addActionToSchema(innerAction, body);
+                if (innerAction) handleAction(innerAction, body);
             });
 
             // Add nested actions if provided
             if (nestedActions) {
                 nestedActions.forEach(nestedAction => 
-                    addActionToSchema(nestedAction.action, body, nestedAction.nestedActions || null)
+                    addActionToSchema(nestedAction.action, body, nestedAction.nestedActions || null, nestedAction.condition || null, nestedAction.duration)
                 );
             }
 
@@ -366,11 +365,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (line.startsWith('}')) {
                     break; // End of block
                 } else if (line.startsWith('avancer')) {
-                    const time = parseInt(line.match(/avancer (\d+);/)[1], 10);
-                    actions.push({ action: 'avancer', time });
+                    const duration = parseInt(line.match(/avancer (\d+);/)[1], 10);
+                    actions.push({ action: 'avancer', duration });
                 } else if (line.startsWith('reculer')) {
-                    const time = parseInt(line.match(/reculer (\d+);/)[1], 10);
-                    actions.push({ action: 'reculer', time });
+                    const duration = parseInt(line.match(/reculer (\d+);/)[1], 10);
+                    actions.push({ action: 'reculer', duration });
                 } else if (line.startsWith('tourner')) {
                     const direction = line.match(/tourner (gauche|droite);/)[1];
                     actions.push({ action: `tourner-${direction}` });
