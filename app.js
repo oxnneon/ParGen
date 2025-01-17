@@ -377,6 +377,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     actions.push({ action: 'lumiere' });
                 } else if (line.startsWith('bruit')) {
                     actions.push({ action: 'bruit' });
+                } else if (line.startsWith('faire')) {
+                    const elementMatch = line.match(/faire (lumiere|bruit);/);
+                    if (elementMatch) {
+                        const element = elementMatch[1];
+                        if (element === 'lumiere') {
+                            actions.push({ action: 'lumiere' });
+                        } else if (element === 'bruit') {
+                            actions.push({ action: 'bruit' });
+                        }
+                    }
                 } else if (line.startsWith('while')) {
                     const condition = line.match(/\((.*?)\)/)[1];
                     actions.push({ action: 'while', nestedActions: parseBlock(), condition });
