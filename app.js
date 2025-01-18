@@ -142,15 +142,14 @@ document.addEventListener('DOMContentLoaded', () => {
     generateCodeBtn.addEventListener('click', () => {
         const fullscreenOverlay = document.getElementById('fullscreen-overlay');
         const loaderContainer = document.getElementById('loader-container');
-    
         if (schemaPath.children.length > 2) {
             fullscreenOverlay.classList.remove('hidden'); // Blur background
             loaderContainer.classList.remove('hidden'); // Show loader
-    
+			saveDSLToFile(); // Save the DSL to a file
             setTimeout(() => {
                 loaderContainer.classList.add('hidden'); // Hide loader
                 fullscreenOverlay.classList.add('hidden'); // Remove blur
-    
+    			
                 const swoosh = document.getElementById('swoosh');
                 swoosh.classList.remove('hidden');
                 swoosh.classList.add('animate');
@@ -158,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     swoosh.classList.remove('animate');
                     swoosh.classList.add('hidden');
                 }, 1000);
-            }, 3000); // Simulated processing time
+            }, 5000); // Simulated processing time
         } else {
             openEmptyPopup();
         }
@@ -349,6 +348,89 @@ document.addEventListener('DOMContentLoaded', () => {
     function enableBackgroundInteraction() {
         document.body.style.pointerEvents = ''; // Re-enable background
     }
+
+	function generateDSLFromPath() {
+	    const schemaPath = document.getElementById('schemaPath');
+	    const dslParts = [];
+	
+	    // Start DSL with the parcours declaration
+	    dslParts.push('parcours myPath {');
+
+	    function parseStructure(children, indentation = '    ') {
+	        Array.from(children).forEach((child) => {
+	            // Handle actions with time (avancer, reculer)
+	            if (child.classList.contains('action-wrapper')) {
+	                const icon = child.querySelector('i');
+	                const timeText = child.querySelector('.time-text');
+	                if (icon && timeText) {
+	                    const action = icon.classList.contains('fa-arrow-up') ? 'avancer' : 'reculer';
+	                    const duration = timeText.textContent.match(/\d+/)[0]; // Extract the numeric value
+	                    dslParts.push(`${indentation}${action} ${duration};`);
+	                }
+	            }
+	            // Handle directional actions (gauche, droite)
+	            else if (child.classList.contains('fas')) {
+	                if (child.classList.contains('fa-arrow-left')) {
+	                    dslParts.push(`${indentation}tourner gauche;`);
+	                } else if (child.classList.contains('fa-arrow-right')) {
+	                    dslParts.push(`${indentation}tourner droite;`);
+	                } else if (child.classList.contains('fa-lightbulb')) {
+	                    dslParts.push(`${indentation}faire lumiere;`);
+	                } else if (child.classList.contains('fa-volume-up')) {
+	                    dslParts.push(`${indentation}faire bruit;`);
+	                }
+	            }
+	            // Handle structures (if, while)
+	            else if (child.classList.contains('structure')) {
+	                const structureType = child.classList.contains('if') ? 'if' : 'while';
+	                const conditionSpan = child.querySelector('span');
+	                const conditionText = conditionSpan.textContent.match(/\((.*?)\)/)[1]; // Extract condition
+	
+	                // Translate conditions to match DSL grammar
+	                let condition;
+	                if (conditionText === 'Pas de bruit') {
+	                    condition = 'noNoise';
+	                } else if (conditionText === 'Pas d\'obstacle') {
+	                    condition = 'noObstacle';
+	                } else if (conditionText.match(/(\d+)\s+tours/)) {
+	                    const rounds = conditionText.match(/(\d+)\s+tours/)[1];
+	                    condition = `counter ${rounds}`;
+	                } else {
+	                    condition = conditionText; // Fallback if none of the above
+	                }
+	
+	                dslParts.push(`${indentation}${structureType} (${condition}) {`);
+	
+	                // Parse nested actions within the structure
+	                const nestedActions = child.querySelector('.structure-body');
+	                if (nestedActions) {
+	                    parseStructure(nestedActions.children, `${indentation}    `);
+	                }
+	                dslParts.push(`${indentation}}`);
+	            }
+	        });
+	    }
+	
+	    // Start parsing the top-level schemaPath children
+	    parseStructure(schemaPath.children);
+	
+	    // End the DSL with closing brace
+	    dslParts.push('}');
+	    
+	    // Return the generated DSL as a string
+	    return dslParts.join('\n');
+	}
+
+
+
+	function saveDSLToFile() {
+	    const dslContent = generateDSLFromPath();
+	    const blob = new Blob([dslContent], { type: 'text/plain' });
+	    const downloadLink = document.createElement('a');
+	    downloadLink.href = URL.createObjectURL(blob);
+	    downloadLink.download = 'mypath.pargendsl'; 
+	    downloadLink.click(); 
+	}
 
     // Parse DSL content
     function parseDSL(dslText) {
